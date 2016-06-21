@@ -111,6 +111,15 @@ class SelectField extends Component {
      */
     style: PropTypes.object,
     /**
+      * This is a callback that fires when the popover
+      * thinks it should close. (e.g. clickAway or ESC key is pressed)
+      */
+     onRequestClose: React.PropTypes.func,
+    /**
+     * Used for keyboard navigation
+     */
+     tabIndex: React.PropTypes.number,
+    /**
      * Override the inline-styles of the underline element when the select
      * field is disabled.
      */
@@ -166,6 +175,8 @@ class SelectField extends Component {
       onBlur,
       onChange,
       value,
+      tabIndex,
+      onRequestClose,
       ...other,
     } = this.props;
 
@@ -200,6 +211,8 @@ class SelectField extends Component {
           autoWidth={autoWidth}
           value={value}
           onChange={onChange}
+          tabIndex={tabIndex}
+          onRequestClose={onRequestClose}
         >
           {children}
         </DropDownMenu>

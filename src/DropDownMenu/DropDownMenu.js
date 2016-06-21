@@ -115,6 +115,15 @@ class DropDownMenu extends Component {
      */
     maxHeight: PropTypes.number,
     /**
+      * This is a callback that fires when the popover
+      * thinks it should close. (e.g. clickAway or ESC key is pressed)
+      */
+     onRequestClose: React.PropTypes.func,
+    /**
+     * Used for keyboard navigation
+     */
+     tabIndex: React.PropTypes.number,
+    /**
      * Overrides the styles of `Menu` when the `DropDownMenu` is displayed.
      */
     menuStyle: PropTypes.object,
@@ -150,6 +159,7 @@ class DropDownMenu extends Component {
     disabled: false,
     openImmediately: false,
     maxHeight: 500,
+    tabIndex: 0
   };
 
   static contextTypes = {
@@ -179,6 +189,39 @@ class DropDownMenu extends Component {
   componentWillReceiveProps() {
     if (this.props.autoWidth) {
       this.setWidth();
+    }
+  }
+
+  _onKeyDown(event) {
+    switch (event.keyCode) {
+      // ENTER, SPACE, ARROW DOWN keys show the menu
+      case 13:
+      case 32:
+      case 40:
+        event.preventDefault();
+        if (!this.props.disabled) {
+          this.setState({
+            open: true,
+            anchorEl: this.refs.root,
+          });
+        }
+    }
+  }
+
+  _onMenuKeyDown(event) {
+    switch (event.keyCode) {
+      case 27: // ESC key dismisses menu
+        event.preventDefault();
+        if (!this.props.disabled) {
+          this.setState({
+            open: false,
+            anchorEl: this.refs.root,
+          }, () => {
+            if (this.props.onRequestClose) {
+              this.props.onRequestClose();
+            }
+          });
+        }
     }
   }
 
@@ -223,6 +266,10 @@ class DropDownMenu extends Component {
       open: false,
       anchorEl: null,
     });
+
+    if (this.props.onRequestClose) {
+      this.props.onRequestClose();
+    }
   };
 
   handleItemTouchTap = (event, child, index) => {
@@ -231,6 +278,9 @@ class DropDownMenu extends Component {
     }, () => {
       if (this.props.onChange) {
         this.props.onChange(event, index, child.props.value);
+      }
+      if (this.props.onRequestClose) {
+        this.props.onRequestClose();
       }
     });
   };
@@ -249,6 +299,8 @@ class DropDownMenu extends Component {
       style,
       underlineStyle,
       value,
+      tabIndex,
+      onRequestClose,
       ...other,
     } = this.props;
 
@@ -283,6 +335,8 @@ class DropDownMenu extends Component {
         ref="root"
         className={className}
         style={prepareStyles(Object.assign({}, styles.root, open && styles.rootWhenOpen, style))}
+        tabIndex={tabIndex}
+        onKeyDown={this._onKeyDown.bind(this)}
       >
         <ClearFix style={styles.control} onTouchTap={this.handleTouchTapControl}>
           <div
@@ -308,6 +362,7 @@ class DropDownMenu extends Component {
             style={menuStyle}
             listStyle={listStyle}
             onItemTouchTap={this.handleItemTouchTap}
+            onKeyDown={this._onMenuKeyDown.bind(this)}
           >
             {children}
           </Menu>
